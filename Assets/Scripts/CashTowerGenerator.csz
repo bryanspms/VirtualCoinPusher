@@ -1,0 +1,180 @@
+using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
+
+
+public class CashTowerGenerator : MonoBehaviour
+{
+    [Header("Configuration")]
+    public ItemType ChipType = ItemType.EarbudsWhite; 
+    public ItemType HiddenCoreItem = ItemType.Quarter; 
+    public ItemType HiddenUpperItem = ItemType.GoldBar1oz; 
+    
+    [Header("Dimensions")]
+    public float ChipHeight = 0.04f; 
+    public float CashStackHeight = 0.14f; 
+    public float UpperSpireHeight = 3.0f; 
+    
+    [Header("Layout")]
+    public bool CompactForShelf = false; 
+    
+    [Header("Playfield Bounds")]
+    public Vector2 playfieldMin = new Vector2(-5f, -5f);
+    public Vector2 playfieldMax = new Vector2(5f, 5f);
+
+    private GameObject activeItemsParent;
+
+    public void SpawnCashTower(Vector3 basePos)
+    {
+        if (activeItemsParent != null) Destroy(activeItemsParent.gameObject);
+        
+        activeItemsParent = new GameObject("CashTower_Items");
+        activeItemsParent.transform.position = basePos;
+        activeItemsParent.transform.SetParent(gameObject.transform);
+
+        float chipH = GetStackHeight(ChipType);
+        float cashH = CashStackHeight;
+        float stepY = chipH * 0.5f + 0.001f; 
+        int lowerLegHeight = Mathf.RoundToInt(UpperSpireHeight / (chipH * 2)); 
+        
+        if (lowerLegHeight < 3) lowerLegHeight = 3; 
+
+        Vector3 basePosLocal = basePos;
+        bool isFourLeg = !CompactForShelf;
+        
+        if (isFourLeg) SpawnFourLegTower(basePosLocal, chipH, cashH, stepY, lowerLegHeight);
+        else SpawnThreeLegTower(basePosLocal, chipH, cashH, stepY, lowerLegHeight);
+
+        Destroy(activeItemsParent.gameObject);
+    }
+
+    private void SpawnFourLegTower(Vector3 basePos, float chipH, float cashH, float stepY, int legHeight)
+    {
+        float half = CashStackHeight * 0.5f;
+        
+        // Spawn four legs at corners of the base
+        Vector3[] cornerPositions = new Vector3[4];
+        float width = 1.2f;
+        float depth = 1.2f;
+        
+        for (int i = 0; i < 4; i++)
+        {
+            float x, z;
+            if (i == 0) { x = -width/2; z = -depth/2; }
+            else if (i == 1) { x = width/2; z = -depth/2; }
+            else if (i == 2) { x = width/2; z = depth/2; }
+            else { x = -width/2; z = depth/2; }
+            
+            cornerPositions[i] = basePos + new Vector3(x, legHeight, z);
+        }
+
+        for (int i = 0; i < 4; i++)
+        {
+            GameObject leg = Instantiate(new GameObject("Leg"), cornerPositions[i]);
+            leg.transform.localPosition = Vector3.zero;
+            
+            // Add a simple cube to represent the leg
+            Cube legCube = leg.AddComponent<Cube>();
+            legCube.size = new Vector3(0.1f, legHeight * 2, 0.1f);
+            legCube.transform.position = new Vector3(0, legHeight, 0);
+        }
+
+        // Spawn the cash stack in the middle
+        GameObject cashStack = Instantiate(new GameObject("CashStack"), basePos);
+        cashStack.transform.localPosition = Vector3.zero;
+        
+        int stacks = Mathf.FloorToInt(cashH / chipH);
+        for (int i = 0; i < stacks; i++)
+        {
+            GameObject itemObj = Instantiate(new GameObject("Item"), new Vector3(0, i * chipH + chipH/2, 0));
+            itemObj.transform.localPosition = Vector3.zero;
+            
+            Cube itemCube = itemObj.AddComponent<Cube>();
+            itemCube.size = new Vector3(0.4f, chipH, 0.4f);
+        }
+
+        // Spawn the upper spire
+        GameObject spire = Instantiate(new GameObject("Spire"), basePos + new Vector3(0, cashH + chipH/2, 0));
+        spire.transform.localPosition = Vector3.zero;
+        
+        int spireStacks = Mathf.FloorToInt((UpperSpireHeight - cashH) / chipH);
+        for (int i = 0; i < spireStacks; i++)
+        {
+            GameObject itemObj = Instantiate(new GameObject("Item"), new Vector3(0, i * chipH + chipH/2, 0));
+            itemObj.transform.localPosition = Vector3.zero;
+            
+            Cube itemCube = itemObj.AddComponent<Cube>();
+            itemCube.size = new Vector3(0.4f, chipH, 0.4f);
+        }
+    }
+
+    private void SpawnThreeLegTower(Vector3 basePos, float chipH, float cashH, float stepY, int legHeight)
+    {
+        // Spawn three legs in a triangle formation
+        Vector3[] cornerPositions = new Vector3[3];
+        float radius = 0.8f;
+        
+        for (int i = 0; i < 3; i++)
+        {
+            float angle = (float)i / 3 * 2 * Mathf.PI;
+            float x = Mathf.Cos(angle) * radius;
+            float z = Mathf.Sin(angle) * radius;
+            
+            cornerPositions[i] = basePos + new Vector3(x, legHeight, z);
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            GameObject leg = Instantiate(new GameObject("Leg"), cornerPositions[i]);
+            leg.transform.localPosition = Vector3.zero;
+            
+            Cube legCube = leg.AddComponent<Cube>();
+            legCube.size = new Vector3(0.1f, legHeight * 2, 0.1f);
+            legCube.transform.position = new Vector3(0, legHeight, 0);
+        }
+
+        // Spawn the cash stack in the middle
+        GameObject cashStack = Instantiate(new GameObject("CashStack"), basePos);
+        cashStack.transform.localPosition = Vector3.zero;
+        
+        int stacks = Mathf.FloorToInt(cashH / chipH);
+        for (int i = 0; i < stacks; i++)
+        {
+            GameObject itemObj = Instantiate(new GameObject("Item"), new Vector3(0, i * chipH + chipH/2, 0));
+            itemObj.transform.localPosition = Vector3.zero;
+            
+            Cube itemCube = itemObj.AddComponent<Cube>();
+            itemCube.size = new Vector3(0.4f, chipH, 0.4f);
+        }
+
+        // Spawn the upper spire
+        GameObject spire = Instantiate(new GameObject("Spire"), basePos + new Vector3(0, cashH + chipH/2, 0));
+        spire.transform.localPosition = Vector3.zero;
+        
+        int spireStacks = Mathf.FloorToInt((UpperSpireHeight - cashH) / chipH);
+        for (int i = 0; i < spireStacks; i++)
+        {
+            GameObject itemObj = Instantiate(new GameObject("Item"), new Vector3(0, i * chipH + chipH/2, 0));
+            itemObj.transform.localPosition = Vector3.zero;
+            
+            Cube itemCube = itemObj.AddComponent<Cube>();
+            itemCube.size = new Vector3(0.4f, chipH, 0.4f);
+        }
+    }
+
+    private float GetStackHeight(ItemType itemType)
+    {
+        switch (itemType)
+        {
+            case ItemType.EarbudsWhite:
+            case ItemType.EarbudsBlack:
+                return 0.12f;
+            case ItemType.Quarter:
+                return 0.08f;
+            case ItemType.GoldBar1oz:
+                return 0.25f;
+            default:
+                return 0.1f;
+        }
+    }
+}

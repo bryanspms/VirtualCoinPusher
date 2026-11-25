@@ -1,0 +1,21 @@
+
+Server arguments:
+  --memory-size 1073741824
+  --shared-postfix 7b10ab89715cde6c900074dfc1c31b70
+  --working-directory Library/DataStore
+  --silent-console
+  --shutdown-grace 0
+  --client-process-check 0
+  --uds-log-file /home/bryan-price/Documents/UnityProjects/VirtualCoinPusher_Unity/Logs/UDS-Service.log
+  --debug-log 2
+
+Initialising UDS system complete:
+  - System type: Service
+  - Resource namespace: 7b10ab89715cde6c900074dfc1c31b70
+  - Shared memory size: 1073741824
+  - Command buffer id: 1052624
+  - Command buffer size: 8192
+  - Hashmap size: 4194304
+Starting Unity Data Store Application
+Unity Data Store Application Complete
+Shut down UDS service system complete
